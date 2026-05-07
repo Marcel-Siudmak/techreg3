@@ -1,6 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal as signal
+import os
+
+# Tworzymy folder, jeśli nie istnieje
+folder_name = "wykresy"
+if not os.path.exists(folder_name):
+    os.makedirs(folder_name)
 
 # Parametry z tabeli 
 a = 10
@@ -88,6 +94,11 @@ ax2.set_ylabel('Amplituda')
 ax2.grid(True)
 ax2.legend()
 
+# Zapisywanie do folderu w formacie PDF
+file_path = os.path.join(folder_name, "wykres_odpowiedzi_skokowej.pdf")
+plt.savefig(file_path, format='pdf')
+
+print(f"Wykres został zapisany w: {file_path}")
 
 # Wyświetlenie
 plt.tight_layout()

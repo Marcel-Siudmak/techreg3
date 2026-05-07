@@ -3,14 +3,14 @@ import matplotlib.pyplot as plt
 import scipy.signal as signal
 
 # Parametry z tabeli dla Włodarczyk Siudmak
-a, b, c, d, k = 10, 35, 50, 24, 13
+k = 13
 
 # ==========================================
 # 1. Kryterium Hurwitza - obliczenia
 # ==========================================
 print("--- Układ otwarty ---")
 # Mianownik układu otwartego: s^4 + a*s^3 + b*s^2 + c*s + d
-a4, a3, a2, a1, a0 = 1, a, b, c, d
+a4, a3, a2, a1, a0 = 1, 10, 35, 50, 24
 
 D1_otw = a3
 D2_otw = a3*a2 - a4*a1
@@ -26,7 +26,7 @@ else:
 
 print("\n--- Układ zamknięty ---")
 # Mianownik układu zamkniętego: s^4 + a*s^3 + b*s^2 + c*s + (d + k)
-a0_zam = d + k
+a0_zam = a0 + k
 
 D1_zam = a3
 D2_zam = a3*a2 - a4*a1
@@ -44,8 +44,8 @@ else:
 # 2. Wzmocnienie w stanie ustalonym
 # ==========================================
 # Dla s -> 0 (z twierdzenia o wartości granicznej)
-k_ust_otw = k / d
-k_ust_zam = k / (d + k)
+k_ust_otw = k / a0
+k_ust_zam = k / (a0 + k)
 
 print(f"\nWzmocnienie w stanie ustalonym (otwarty): {k_ust_otw:.4f}")
 print(f"Wzmocnienie w stanie ustalonym (zamknięty): {k_ust_zam:.4f}")
@@ -57,8 +57,8 @@ print(f"Wzmocnienie w stanie ustalonym (zamknięty): {k_ust_zam:.4f}")
 t = np.linspace(0, 15, 1000)
 
 # Definicja transmitancji do symulacji skoku
-sys_otw = signal.TransferFunction([k], [1, a, b, c, d])
-sys_zam = signal.TransferFunction([k], [1, a, b, c, d + k])
+sys_otw = signal.TransferFunction([k], [1, a3, a2, a1, a0])
+sys_zam = signal.TransferFunction([k], [1, a3, a2, a1, a0_zam])
 
 # Obliczenie odpowiedzi skokowych
 t_otw, y_otw = signal.step(sys_otw, T=t)

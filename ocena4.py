@@ -7,11 +7,13 @@ a, b, c, d = 10, 35, 50, 24
 k_nominalne = 13
 
 # ==========================================
-# 1. Częstotliwość i wzór wielomianu M(jw)
+# 1. Częstotliwość i wzór wielomianu M(jω) — mianownik K(s), kryterium Michajłowa
 # ==========================================
-# Dobieramy zakres tak, aby ładnie uchwycić przejścia przez osie
-w = np.linspace(0, 5, 2000) 
-M = (1j*w)**4 + a*(1j*w)**3 + b*(1j*w)**2 + c*(1j*w) + d
+# Analitycznie: M(jω) = (jω)^4 + a(jω)^3 + b(jω)^2 + c(jω) + d
+#            = (ω^4 - b ω^2 + d) + j(-a ω^3 + c ω)
+# Dobieramy zakres tak, aby uchwycić przejścia przez osie
+w = np.linspace(0, 5, 2000)
+M = (1j * w) ** 4 + a * (1j * w) ** 3 + b * (1j * w) ** 2 + c * (1j * w) + d
 
 # ==========================================
 # 2. Obliczenie kąta (argumentu w radianach)
@@ -47,8 +49,8 @@ plt.show()
 # ==========================================
 t = np.linspace(0, 15, 1000)
 
-# Testujemy dla k mniejszego, nominalnego i znacznie większego
-wartosci_k = [1, 13, 50]
+# k mniejsze, nominalne (z tabeli), większe
+wartosci_k = [1, k_nominalne, 50]
 
 for k_test in wartosci_k:
     # Transmitancja układu otwartego: K_otw(s) = k / (s^4 + a*s^3 + b*s^2 + c*s + d)
@@ -64,3 +66,15 @@ plt.ylabel('Amplituda')
 plt.legend()
 plt.grid(True)
 plt.show()
+
+# Wniosek (Michajłow): dla stabilnego wielomianu stopnia n krzywa M(jω)
+# obraca się monotonicznie o n·π/2 przy ω: 0→∞ (tu n=4 → 2π).
+p_ocw = np.roots([1, a, b, c, d])
+print("\n[Ocena 4] Bieguny układu otwartego (pierwiastki D(s)=s^4+as^3+bs^2+cs+d):")
+print(p_ocw)
+print("Wszystkie Re(p)<0:", np.all(np.real(p_ocw) < 0), "→ Michajłow: układ otwarty stabilny.")
+print(
+    "Uwaga: k nie występuje w D(s), więc stabilność biegunowa OL nie zależy od k — "
+    "odpowiedź na «dla jakich k przestaje być stabilny?»: przy tym D(s) — dla żadnego k>0 "
+    "(zmienia się tylko skala odpowiedzi skokowej pętli k/D)."
+)

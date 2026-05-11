@@ -8,12 +8,12 @@ GRAFIKI_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "grafiki"
 os.makedirs(GRAFIKI_DIR, exist_ok=True)
 
 
-def zapisz_wykres_wektorowo(nazwa_pliku: str) -> str:
+def zapisz_wykres_wektorowo(nazwa_pliku: str, fig=None) -> str:
     sciezka = os.path.join(GRAFIKI_DIR, nazwa_pliku)
     if not sciezka.lower().endswith((".svg", ".pdf", ".eps")):
         sciezka += ".svg"
     fmt = sciezka.rsplit(".", 1)[-1]
-    plt.savefig(sciezka, format=fmt, bbox_inches="tight")
+    (fig or plt.gcf()).savefig(sciezka, format=fmt, bbox_inches="tight")
     return sciezka
 
 
@@ -26,8 +26,8 @@ k_nominalne = 13
 # ==========================================
 # Analitycznie: M(jω) = (jω)^4 + a(jω)^3 + b(jω)^2 + c(jω) + d
 #            = (ω^4 - b ω^2 + d) + j(-a ω^3 + c ω)
-# Dobieramy zakres tak, aby uchwycić przejścia przez osie
-w = np.linspace(0, 5, 2000)
+# ω do ~2.5 rad/s: dalej |M(jω)| bardzo szybko rośnie i krzywa „ucieka” — wykres byłby nieczytelny
+w = np.linspace(0, 2.5, 3000)
 M = (1j * w) ** 4 + a * (1j * w) ** 3 + b * (1j * w) ** 2 + c * (1j * w) + d
 
 # ==========================================
@@ -36,30 +36,38 @@ M = (1j * w) ** 4 + a * (1j * w) ** 3 + b * (1j * w) ** 2 + c * (1j * w) + d
 kat = np.unwrap(np.angle(M))
 
 # ==========================================
-# 3. Rysowanie - Krzywa Michajłowa
+# 3. Rysowanie - Krzywa Michajłowa (osobna figura — zapis SVG nie miesza wykresów)
 # ==========================================
-plt.plot(np.real(M), np.imag(M), color='blue')
-plt.axhline(0, color='black', linewidth=1)
-plt.axvline(0, color='black', linewidth=1)
-plt.title('Krzywa Michajłowa dla układu otwartego')
-plt.xlabel('Re')
-plt.ylabel('Im')
-plt.grid(True)
-print("Zapis:", zapisz_wykres_wektorowo("ocena4_krzywa_michajlowa.svg"))
-plt.show()
+fig_m, ax_m = plt.subplots(figsize=(7, 6))
+ax_m.plot(np.real(M), np.imag(M), color="blue")
+ax_m.axhline(0, color="black", linewidth=1)
+ax_m.axvline(0, color="black", linewidth=1)
+ax_m.set_title("Krzywa Michajłowa dla układu otwartego (M(jω)=D(jω), ω∈[0, 2.5])")
+ax_m.set_xlabel("Re M(jω)")
+ax_m.set_ylabel("Im M(jω)")
+ax_m.grid(True)
+ax_m.set_aspect("equal", adjustable="box")
+rm, rM = np.min(np.real(M)), np.max(np.real(M))
+imn, imx = np.min(np.imag(M)), np.max(np.imag(M))
+pad = 0.06 * max(rM - rm, imx - imn, 1.0)
+ax_m.set_xlim(rm - pad, rM + pad)
+ax_m.set_ylim(imn - pad, imx + pad)
+print("Zapis:", zapisz_wykres_wektorowo("ocena4_krzywa_michajlowa.svg", fig=fig_m))
 
 # ==========================================
-# 4. Wyświetlenie wykresu zmiany kąta
+# 4. Wykres zmiany argumentu M(jω)
 # ==========================================
-plt.plot(w, kat, color='green')
-plt.axhline(0, color='black', linewidth=1)
-plt.axvline(0, color='black', linewidth=1)
-plt.title('Zmiana argumentu funkcji M(jω)')
-plt.xlabel('ω [rad/s]')
-plt.ylabel('Argument [rad]')
-plt.grid(True)
-print("Zapis:", zapisz_wykres_wektorowo("ocena4_argument_M_jomega.svg"))
-plt.show()
+fig_a, ax_a = plt.subplots(figsize=(7, 5))
+ax_a.plot(w, kat, color="green")
+ax_a.axhline(0, color="black", linewidth=1)
+ax_a.axvline(0, color="black", linewidth=1)
+ax_a.set_title("Zmiana argumentu funkcji M(jω)")
+ax_a.set_xlabel("ω [rad/s]")
+ax_a.set_ylabel("Argument [rad]")
+ax_a.grid(True)
+kmin, kmax = np.min(kat), np.max(kat)
+ax_a.set_ylim(kmin - 0.15 * max(abs(kmax - kmin), 1.0), kmax + 0.15 * max(abs(kmax - kmin), 1.0))
+print("Zapis:", zapisz_wykres_wektorowo("ocena4_argument_M_jomega.svg", fig=fig_a))
 
 # ==========================================
 # 5. Wpływ parametru k na odp. skokową (Symulacja)
@@ -69,20 +77,25 @@ t = np.linspace(0, 15, 1000)
 # k mniejsze, nominalne (z tabeli), większe
 wartosci_k = [1, k_nominalne, 50]
 
+fig_s, ax_s = plt.subplots(figsize=(8, 5))
+ymax = 0.0
 for k_test in wartosci_k:
     # Transmitancja układu otwartego: K_otw(s) = k / (s^4 + a*s^3 + b*s^2 + c*s + d)
     sys_otw = signal.TransferFunction([k_test], [1, a, b, c, d])
     t_out, y_out = signal.step(sys_otw, T=t)
-    plt.plot(t_out, y_out, label=f'k = {k_test}')
+    ax_s.plot(t_out, y_out, label=f"k = {k_test}")
+    ymax = max(ymax, float(np.max(y_out)))
 
-plt.axhline(0, color='black', linewidth=1)
-plt.axvline(0, color='black', linewidth=1)
-plt.title('Wpływ parametru k na odpowiedź układu otwartego')
-plt.xlabel('Czas [s]')
-plt.ylabel('Amplituda')
-plt.legend()
-plt.grid(True)
-print("Zapis:", zapisz_wykres_wektorowo("ocena4_wplyw_k_odpowiedz_skokowa_ol.svg"))
+ax_s.axhline(0, color="black", linewidth=1)
+ax_s.axvline(0, color="black", linewidth=1)
+ax_s.set_title("Wpływ parametru k na odpowiedź układu otwartego")
+ax_s.set_xlabel("Czas [s]")
+ax_s.set_ylabel("Amplituda")
+ax_s.legend()
+ax_s.grid(True)
+ax_s.set_xlim(0, float(t[-1]))
+ax_s.set_ylim(0, ymax * 1.08 + 1e-9)
+print("Zapis:", zapisz_wykres_wektorowo("ocena4_wplyw_k_odpowiedz_skokowa_ol.svg", fig=fig_s))
 plt.show()
 
 # Wniosek (Michajłow): dla stabilnego wielomianu stopnia n krzywa M(jω)

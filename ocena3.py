@@ -9,12 +9,13 @@ GRAFIKI_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "grafiki"
 os.makedirs(GRAFIKI_DIR, exist_ok=True)
 
 
-def zapisz_wykres_wektorowo(nazwa_pliku: str) -> str:
-    """Zapisuje bieżącą figurę do GRAFIKI_DIR jako SVG. Zwraca pełną ścieżkę."""
+def zapisz_wykres_wektorowo(nazwa_pliku: str, fig=None) -> str:
+    """Zapisuje figurę do GRAFIKI_DIR jako SVG (lub inny format z rozszerzenia). fig=None → bieżąca."""
     sciezka = os.path.join(GRAFIKI_DIR, nazwa_pliku)
     if not sciezka.lower().endswith((".svg", ".pdf", ".eps")):
         sciezka += ".svg"
-    plt.savefig(sciezka, format=sciezka.rsplit(".", 1)[-1], bbox_inches="tight")
+    fmt = sciezka.rsplit(".", 1)[-1]
+    (fig or plt.gcf()).savefig(sciezka, format=fmt, bbox_inches="tight")
     return sciezka
 
 # Parametry z tabeli 
@@ -60,51 +61,40 @@ wzmocnienie_zamkniete = k / (d + k)
 print(f"Wzmocnienie ustalone układu otwartego (S = 0): {wzmocnienie_otwarte:.3f}")
 print(f"Wzmocnienie ustalone układu zamkniętego (S = 0): {wzmocnienie_zamkniete:.3f}")
 
-# Tworzymy siatke wykresów
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
-
-# Definicja transmitancji G_otw(s) = 13 / (s^4 + 10s^3 + 35s^2 + 50s + 24)
+# Definicja transmitancji G_otw(s) = k / (s^4 + … + d)
 licznik_otw = [k]
 mianownik_otw = [ao4, ao3, ao2, ao1, ao0]
 system_otw = signal.TransferFunction(licznik_otw, mianownik_otw)
-
-# Obliczamy odpowiedź skokową
 t_otw, y_otw = signal.step(system_otw)
 
-# Rysowanie na ax1
-ax1.plot(t_otw, y_otw, label='Odpowiedź układu otwartego', color='red')
+fig_otw, ax_otw = plt.subplots(figsize=(10, 5))
+ax_otw.plot(t_otw, y_otw, label="Odpowiedź układu otwartego", color="red")
+ax_otw.axhline(y=wzmocnienie_otwarte, color="blue", linestyle="--", label=f"Wzmocnienie: {wzmocnienie_otwarte:.3f}")
+ax_otw.set_title("Odpowiedź skokowa — układ otwarty")
+ax_otw.set_xlabel("Czas [s]")
+ax_otw.set_ylabel("Amplituda")
+ax_otw.grid(True)
+ax_otw.legend()
+fig_otw.tight_layout()
+sciezka_otw = zapisz_wykres_wektorowo("ocena3_odpowiedz_skokowa_ol.svg", fig=fig_otw)
+print(f"Wykres (wektorowy) zapisany: {sciezka_otw}")
 
-# Pozioma linia oznaczajaca obliczone wzmocnienie
-ax1.axhline(y=wzmocnienie_otwarte, color='blue', linestyle='--', label=f'Wzmocnienie: {wzmocnienie_otwarte:.3f}')
-
-# Formatowanie wykresu 1
-ax1.set_title('Odpowiedź skokowa - Układ Otwarty')
-ax1.set_ylabel('Amplituda')
-ax1.grid(True)
-ax1.legend()
-
-# Definicja transmitancji G_zam(s) = 13 / (s^4 + 10s^3 + 35s^2 + 50s + 37
+# Definicja transmitancji układu zamkniętego
 licznik_zam = [k]
 mianownik_zam = [az4, az3, az2, az1, az0]
 system_zam = signal.TransferFunction(licznik_zam, mianownik_zam)
-
-# Obliczamy odpowiedź skokowaą
 t_zam, y_zam = signal.step(system_zam)
 
-# Rysowanie na ax2
-ax2.plot(t_zam, y_zam, label='Odpowiedź układu zamkniętego', color='red')
-
-# Pozioma linia oznaczająca obliczone wzmocnienie
-ax2.axhline(y=wzmocnienie_zamkniete, color='blue', linestyle='--', label=f'Wzmocnienie: {wzmocnienie_zamkniete:.3f}')
-
-# Formatowanie wykresu 2
-ax2.set_title('Odpowiedź skokowa - Układ Zamknięty')
-ax2.set_ylabel('Amplituda')
-ax2.grid(True)
-ax2.legend()
-
-plt.tight_layout()
-sciezka = zapisz_wykres_wektorowo("ocena3_odpowiedz_skokowa_ol_i_zamkniety.svg")
-print(f"Wykres (wektorowy) zapisany: {sciezka}")
+fig_zam, ax_zam = plt.subplots(figsize=(10, 5))
+ax_zam.plot(t_zam, y_zam, label="Odpowiedź układu zamkniętego", color="red")
+ax_zam.axhline(y=wzmocnienie_zamkniete, color="blue", linestyle="--", label=f"Wzmocnienie: {wzmocnienie_zamkniete:.3f}")
+ax_zam.set_title("Odpowiedź skokowa — układ zamknięty")
+ax_zam.set_xlabel("Czas [s]")
+ax_zam.set_ylabel("Amplituda")
+ax_zam.grid(True)
+ax_zam.legend()
+fig_zam.tight_layout()
+sciezka_zam = zapisz_wykres_wektorowo("ocena3_odpowiedz_skokowa_zamkniety.svg", fig=fig_zam)
+print(f"Wykres (wektorowy) zapisany: {sciezka_zam}")
 plt.show()
 

@@ -1,6 +1,21 @@
+import os
+
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal as signal
+
+GRAFIKI_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "grafiki")
+os.makedirs(GRAFIKI_DIR, exist_ok=True)
+
+
+def zapisz_wykres_wektorowo(nazwa_pliku: str) -> str:
+    sciezka = os.path.join(GRAFIKI_DIR, nazwa_pliku)
+    if not sciezka.lower().endswith((".svg", ".pdf", ".eps")):
+        sciezka += ".svg"
+    fmt = sciezka.rsplit(".", 1)[-1]
+    plt.savefig(sciezka, format=fmt, bbox_inches="tight")
+    return sciezka
+
 
 # Parametry z tabeli
 a, b, c, d = 10, 35, 50, 24
@@ -30,6 +45,7 @@ plt.title('Krzywa Michajłowa dla układu otwartego')
 plt.xlabel('Re')
 plt.ylabel('Im')
 plt.grid(True)
+print("Zapis:", zapisz_wykres_wektorowo("ocena4_krzywa_michajlowa.svg"))
 plt.show()
 
 # ==========================================
@@ -42,6 +58,7 @@ plt.title('Zmiana argumentu funkcji M(jω)')
 plt.xlabel('ω [rad/s]')
 plt.ylabel('Argument [rad]')
 plt.grid(True)
+print("Zapis:", zapisz_wykres_wektorowo("ocena4_argument_M_jomega.svg"))
 plt.show()
 
 # ==========================================
@@ -65,6 +82,7 @@ plt.xlabel('Czas [s]')
 plt.ylabel('Amplituda')
 plt.legend()
 plt.grid(True)
+print("Zapis:", zapisz_wykres_wektorowo("ocena4_wplyw_k_odpowiedz_skokowa_ol.svg"))
 plt.show()
 
 # Wniosek (Michajłow): dla stabilnego wielomianu stopnia n krzywa M(jω)

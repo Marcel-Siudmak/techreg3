@@ -1,6 +1,21 @@
+import os
+
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal as signal
+
+GRAFIKI_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "grafiki")
+os.makedirs(GRAFIKI_DIR, exist_ok=True)
+
+
+def zapisz_wykres_wektorowo(nazwa_pliku: str) -> str:
+    sciezka = os.path.join(GRAFIKI_DIR, nazwa_pliku)
+    if not sciezka.lower().endswith((".svg", ".pdf", ".eps")):
+        sciezka += ".svg"
+    fmt = sciezka.rsplit(".", 1)[-1]
+    plt.savefig(sciezka, format=fmt, bbox_inches="tight")
+    return sciezka
+
 
 # Parametry z tabeli Włodarczyk Siudmak
 a, b, c, d = 10, 35, 50, 24
@@ -36,6 +51,7 @@ re_min, re_max = np.min(np.real(K_otw)), np.max(np.real(K_otw))
 im_min, im_max = np.min(np.imag(K_otw)), np.max(np.imag(K_otw))
 plt.xlim(min(-1.2, re_min - margin), max(0.65, re_max + margin))
 plt.ylim(im_min - margin, max(0.12, im_max + margin))
+print("Zapis:", zapisz_wykres_wektorowo("ocena5_wykres_nyquista.svg"))
 plt.show()
 
 # ==========================================
@@ -54,6 +70,7 @@ plt.title('Zmiana argumentu funkcji 1 + K_otw(jω)')
 plt.xlabel('ω [rad/s] (skala log)')
 plt.ylabel('Argument [rad]')
 plt.grid(True)
+print("Zapis:", zapisz_wykres_wektorowo("ocena5_argument_1_plus_Kotw_jomega.svg"))
 plt.show()
 
 # ==========================================
@@ -83,6 +100,7 @@ plt.ylabel('Amplituda')
 plt.ylim(-2, 3)
 plt.legend(loc='upper right')
 plt.grid(True)
+print("Zapis:", zapisz_wykres_wektorowo("ocena5_wplyw_k_odpowiedz_skokowa_zamkniety.svg"))
 plt.show()
 
 p_ol = np.roots([1, a, b, c, d])

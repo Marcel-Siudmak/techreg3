@@ -1,12 +1,21 @@
+import os
+
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal as signal
-import os
 
-# Tworzymy folder, jeśli nie istnieje
-folder_name = "wykresy"
-if not os.path.exists(folder_name):
-    os.makedirs(folder_name)
+# Grafika wektorowa (SVG) — wspólny folder dla wszystkich zadań
+GRAFIKI_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "grafiki")
+os.makedirs(GRAFIKI_DIR, exist_ok=True)
+
+
+def zapisz_wykres_wektorowo(nazwa_pliku: str) -> str:
+    """Zapisuje bieżącą figurę do GRAFIKI_DIR jako SVG. Zwraca pełną ścieżkę."""
+    sciezka = os.path.join(GRAFIKI_DIR, nazwa_pliku)
+    if not sciezka.lower().endswith((".svg", ".pdf", ".eps")):
+        sciezka += ".svg"
+    plt.savefig(sciezka, format=sciezka.rsplit(".", 1)[-1], bbox_inches="tight")
+    return sciezka
 
 # Parametry z tabeli 
 a = 10
@@ -94,13 +103,8 @@ ax2.set_ylabel('Amplituda')
 ax2.grid(True)
 ax2.legend()
 
-# Zapisywanie do folderu w formacie PDF
-file_path = os.path.join(folder_name, "wykres_odpowiedzi_skokowej.pdf")
-plt.savefig(file_path, format='pdf')
-
-print(f"Wykres został zapisany w: {file_path}")
-
-# Wyświetlenie
 plt.tight_layout()
+sciezka = zapisz_wykres_wektorowo("ocena3_odpowiedz_skokowa_ol_i_zamkniety.svg")
+print(f"Wykres (wektorowy) zapisany: {sciezka}")
 plt.show()
 
